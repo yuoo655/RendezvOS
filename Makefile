@@ -139,3 +139,21 @@ clean:	init
 	@-rm -f $(shell find $(BUILD) -name *.o)
 	@-rm -f $(shell find $(BUILD) -name *.d)
 	@-rm -f ./*.log
+
+# UEFI with file-based kernel and tracing
+uefi-run: 
+	sudo apt-get install -y gnu-efi ovmf qemu-utils
+	@echo "Building UEFI stub with kernel file..."
+	@$(SCRIPT_DIR)/build_uefi_with_kernel_file.sh $(Target_BIN)
+	@echo "Running RendezvOS with UEFI (file-based kernel) with tracing..."
+	qemu-system-x86_64 \
+		-bios /usr/share/ovmf/OVMF.fd \
+		-drive format=raw,file=build/rendezvos_uefi_with_kernel.img \
+		-machine q35 \
+		-m $(MEM_SIZE) \
+		-smp $(SMP) \
+		-serial stdio \
+		-monitor none \
+		-display none \
+		--trace "*cpu_reset*"
+
